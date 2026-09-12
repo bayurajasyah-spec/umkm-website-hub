@@ -1,51 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Category, Order, Product } from "./types";
 
-export function usePosProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+const productKey = ["pos", "products"] as const;
+const orderKey = ["pos", "orders"] as const;
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const [{ data: productRows }, { data: categoryRows }] = await Promise.all([
+export function usePosProducts() {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: productKey,
+    queryFn: async () => {
+      const [{ data: productRows, error: productError }, { data: categoryRows, error: categoryError }] = await Promise.all([
         supabase.from("products").select("*").eq("aktif", true).order("nama"),
         supabase.from("categories").select("*").order("nama"),
       ]);
-      if (!active) return;
-      setProducts((productRows ?? []) as Product[]);
-      setCategories((categoryRows ?? []) as Category[]);
-      setLoading(false);
-    };
-    load();
-    const channel = supabase
-      .channel("pos-products")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, load)
-      .subscribe();
-    return () => { active = false; void supabase.removeChannel(channel); };
-  }, []);
+      if (productError) throw productError;
+      if (categoryError) throw categoryError;
+      return { products: (productRows ?? []) as Product[], categories: (categoryRows ?? []) as Category[] };
+    },
+    staleTime: 30_000,
+  });
 
-  return { products, categories, loading };
+  useEffect(() => {
+    const channel = supabase.channel("pos-products-realtime").on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => queryClient.invalidateQueries({ queryKey: productKey })).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [queryClient]);
+
+  return { products: query.data?.products ?? [], categories: query.data?.categories ?? [], loading: query.isLoading, error: query.error };
 }
 
 export function usePosOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: orderKey,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return (data ?? []) as Order[];
+    },
+    staleTime: 10_000,
+  });
+
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
-      if (active) setOrders((data ?? []) as Order[]);
-    };
-    load();
-    const channel = supabase
-      .channel("pos-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
-      .subscribe();
-    return () => { active = false; void supabase.removeChannel(channel); };
-  }, []);
-  return orders;
+    const channel = supabase.channel("pos-orders-realtime").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => queryClient.invalidateQueries({ queryKey: orderKey })).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [queryClient]);
+  return query.data ?? [];
 }
 
 export function toFood(product: Product) {
