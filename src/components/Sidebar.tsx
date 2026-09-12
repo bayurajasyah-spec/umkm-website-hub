@@ -14,6 +14,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/order", label: "Food Order", icon: ShoppingBag },
+  { to: "/kitchen", label: "Kitchen Display", icon: Utensils },
   { to: "/favorites", label: "Favorites", icon: Heart },
   { to: "/history", label: "Order History", icon: PackageCheck },
   { to: "/wallet", label: "Bills & Wallet", icon: WalletCards },

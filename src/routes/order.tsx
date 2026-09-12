@@ -1,136 +1,17 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Check, ChefHat, Clock3, Search, UtensilsCrossed } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { FoodCard } from "@/components/FoodCard";
-import { dishes } from "@/lib/types";
-import { useStoreActions, useStoreState } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { rupiah } from "@/lib/types";
+import { usePosOrders } from "@/lib/pos-data";
 
-const filters = ["Rating 4.5+", "Price", "Delivery Time", "Distance"];
-
-export const Route = createFileRoute("/order")({
-  component: OrderPage,
-  head: () => ({
-    meta: [
-      { title: "Food Order — Delivero" },
-      { name: "description", content: "Search and order your favorite dishes from local restaurants." },
-      { property: "og:title", content: "Food Order — Delivero" },
-      { property: "og:description", content: "Search and order your favorite dishes from local restaurants." },
-      { property: "og:type", content: "website" },
-    ],
-    links: [{ rel: "canonical", href: "/order" }],
-  }),
-});
+export const Route = createFileRoute("/order")({ component: OrderPage, head: () => ({ meta: [{ title: "Order Aktif — Delivero" }] }) });
 
 function OrderPage() {
   const [query, setQuery] = useState("");
-  const navigate = useNavigate();
-  const { favorites } = useStoreState();
-  const { toggleFavorite, addToCart } = useStoreActions();
-
-  const visible = dishes.filter(
-    (x) =>
-      x.name.toLowerCase().includes(query.toLowerCase()) ||
-      x.restaurant.toLowerCase().includes(query.toLowerCase())
-  );
-
-  return (
-    <AppLayout>
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-gray-100 bg-white/95 px-5 pl-16 backdrop-blur lg:px-8">
-        <h1 className="font-display text-2xl font-bold text-brand">
-          Food Order
-        </h1>
-      </header>
-
-      <div className="px-5 pb-28 pt-5 lg:px-8 lg:pb-10">
-        {/* Search bar */}
-        <div className="mb-5">
-          <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-gray-100 focus-within:ring-brand/30 transition">
-            <Search size={17} className="flex-shrink-0 text-gray-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
-              placeholder="Search dishes, restaurants…"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="text-gray-400 hover:text-gray-600 transition"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </label>
-        </div>
-
-        {/* Filter chips */}
-        <div className="mb-6 flex flex-wrap items-center gap-2.5">
-          <button className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition hover:border-brand/30">
-            <SlidersHorizontal size={14} />
-            Filters
-          </button>
-          {filters.map((f, i) => (
-            <button
-              key={f}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition ${
-                i === 0
-                  ? "bg-brand text-white shadow-sm"
-                  : "border border-gray-200 bg-white text-gray-600 shadow-sm hover:border-brand/30"
-              }`}
-            >
-              {f}
-              {i === 0 && <X size={13} />}
-              {i > 0 && <span className="text-gray-400">⌄</span>}
-            </button>
-          ))}
-        </div>
-
-        {/* Results count */}
-        {query && (
-          <p className="mb-4 text-sm text-gray-500">
-            <span className="font-semibold text-brand">{visible.length}</span>{" "}
-            result{visible.length !== 1 ? "s" : ""} for "
-            <span className="font-medium">{query}</span>"
-          </p>
-        )}
-
-        {/* Grid */}
-        {visible.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {visible.map((food) => (
-              <FoodCard
-                key={food.id}
-                food={food}
-                isFav={favorites.includes(food.id)}
-                onFav={() => toggleFavorite(food.id)}
-                onAdd={() => addToCart(food)}
-                onDetail={() =>
-                  navigate({ to: "/detail/$id", params: { id: String(food.id) } })
-                }
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 shadow-sm ring-1 ring-gray-100">
-            <div className="grid size-16 place-items-center rounded-3xl bg-brand-soft">
-              <Search size={28} className="text-[#7c5cbf]" />
-            </div>
-            <h2 className="mt-5 font-display text-xl font-bold text-brand">
-              No Results Found
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Try a different keyword or browse categories.
-            </p>
-            <button
-              onClick={() => setQuery("")}
-              className="mt-6 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white"
-            >
-              Clear Search
-            </button>
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
+  const orders = usePosOrders();
+  const active = useMemo(() => orders.filter((order) => !["selesai", "ditolak"].includes(order.status) && order.order_code.toLowerCase().includes(query.toLowerCase())), [orders, query]);
+  const updateStatus = async (id: string, status: string) => { await supabase.from("orders").update({ status }).eq("id", id); };
+  return <AppLayout><header className="flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 py-5 pl-16 lg:px-8"><div><h1 className="font-display text-2xl font-bold text-brand">Order Aktif</h1><p className="mt-1 text-sm text-gray-500">Kasir dan kitchen tersinkron realtime.</p></div><div className="rounded-full bg-brand-soft px-3 py-1.5 text-xs font-semibold text-brand">{active.length} berjalan</div></header><div className="px-5 pb-28 pt-5 lg:px-8 lg:pb-10"><label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-gray-100"><Search size={17} className="text-gray-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="flex-1 bg-transparent text-sm outline-none" placeholder="Cari nomor order..." /></label><div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">{active.map((order) => <article key={order.id} className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100"><div className="flex items-start justify-between"><div><p className="font-display text-lg font-bold text-brand">{order.order_code}</p><p className="mt-1 text-xs text-gray-400">{new Date(order.created_at).toLocaleString("id-ID")}</p></div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-700">{order.status}</span></div><div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div className="flex items-center gap-2 text-xs text-gray-500"><Clock3 size={14} /> {order.metode_bayar}</div><strong className="text-brand">{rupiah(Number(order.total))}</strong></div><div className="mt-4 flex gap-2">{order.status === "menunggu" && <button onClick={() => updateStatus(order.id, "diproses")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-3 py-2.5 text-xs font-bold text-white"><ChefHat size={14} /> Proses</button>}{order.status === "diproses" && <button onClick={() => updateStatus(order.id, "siap_antar")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-accent-yellow px-3 py-2.5 text-xs font-bold text-brand"><UtensilsCrossed size={14} /> Siap</button>}{order.status === "siap_antar" && <button onClick={() => updateStatus(order.id, "selesai")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white"><Check size={14} /> Selesai</button>}</div></article>)}{!active.length && <div className="rounded-3xl bg-white p-14 text-center text-sm text-gray-500 lg:col-span-3">Belum ada order aktif.</div>}</div></div></AppLayout>;
 }

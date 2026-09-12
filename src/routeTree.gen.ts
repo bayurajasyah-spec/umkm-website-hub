@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as KitchenRouteImport } from './routes/kitchen'
 import { Route as OrderRouteImport } from './routes/order'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as WalletRouteImport } from './routes/wallet'
@@ -37,6 +38,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitchenRoute = KitchenRouteImport.update({
+  id: '/kitchen',
+  path: '/kitchen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderRoute = OrderRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/kitchen': typeof KitchenRoute
   '/order': typeof OrderRoute
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/kitchen': typeof KitchenRoute
   '/order': typeof OrderRoute
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/kitchen': typeof KitchenRoute
   '/order': typeof OrderRoute
   '/settings': typeof SettingsRoute
   '/wallet': typeof WalletRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/history'
+    | '/kitchen'
     | '/order'
     | '/settings'
     | '/wallet'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/history'
+    | '/kitchen'
     | '/order'
     | '/settings'
     | '/wallet'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/favorites'
     | '/history'
+    | '/kitchen'
     | '/order'
     | '/settings'
     | '/wallet'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   FavoritesRoute: typeof FavoritesRoute
   HistoryRoute: typeof HistoryRoute
+  KitchenRoute: typeof KitchenRoute
   OrderRoute: typeof OrderRoute
   SettingsRoute: typeof SettingsRoute
   WalletRoute: typeof WalletRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kitchen': {
+      id: '/kitchen'
+      path: '/kitchen'
+      fullPath: '/kitchen'
+      preLoaderRoute: typeof KitchenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   FavoritesRoute: FavoritesRoute,
   HistoryRoute: HistoryRoute,
+  KitchenRoute: KitchenRoute,
   OrderRoute: OrderRoute,
   SettingsRoute: SettingsRoute,
   WalletRoute: WalletRoute,
