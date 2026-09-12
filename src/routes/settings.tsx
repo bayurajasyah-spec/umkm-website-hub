@@ -1,38 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings as SettingsIcon } from "lucide-react";
+import { BarChart3, Boxes, Clock3, Plus, Settings as SettingsIcon, Store, Users } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { rupiah } from "@/lib/types";
+import { usePosOrders, usePosProducts } from "@/lib/pos-data";
 
-export const Route = createFileRoute("/settings")({
-  component: SettingsPage,
-  head: () => ({
-    meta: [
-      { title: "Settings — Delivero" },
-      { name: "description", content: "Manage your account settings." },
-      { property: "og:title", content: "Settings — Delivero" },
-      { property: "og:description", content: "Manage your account settings." },
-      { property: "og:type", content: "website" },
-    ],
-    links: [{ rel: "canonical", href: "/settings" }],
-  }),
-});
-
-function SettingsPage() {
-  return (
-    <AppLayout>
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-gray-100 bg-white/95 px-5 pl-16 backdrop-blur lg:px-8">
-        <h1 className="font-display text-2xl font-bold text-brand">Settings</h1>
-      </header>
-      <div className="flex flex-col items-center justify-center px-5 pb-28 pt-20 lg:px-8 lg:pb-10">
-        <div className="grid size-16 place-items-center rounded-3xl bg-brand-soft">
-          <SettingsIcon size={28} className="text-[#7c5cbf]" />
-        </div>
-        <h2 className="mt-5 font-display text-xl font-bold text-brand">
-          Settings
-        </h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Account settings will be available soon.
-        </p>
-      </div>
-    </AppLayout>
-  );
-}
+export const Route = createFileRoute("/settings")({ component: SettingsPage, head: () => ({ meta: [{ title: "POS Management — Delivero" }] }) });
+function SettingsPage() { const [tab, setTab] = useState("overview"); const { products } = usePosProducts(); const orders = usePosOrders(); const [name, setName] = useState(""); const [price, setPrice] = useState(""); const [stock, setStock] = useState(""); const total = useMemo(() => orders.filter((o) => o.status === "selesai").reduce((sum, o) => sum + Number(o.total || 0), 0), [orders]); const addProduct = async () => { if (!name || !price) return; await supabase.from("products").insert({ nama: name, harga: Number(price), stok: Number(stock || 0), aktif: true, restaurant: "Outlet utama", deskripsi: "" }); setName(""); setPrice(""); setStock(""); }; const tabs = [{ id: "overview", label: "Overview", icon: BarChart3 }, { id: "catalog", label: "Catalog", icon: Store }, { id: "inventory", label: "Inventory", icon: Boxes }, { id: "shift", label: "Shift & Kas", icon: Clock3 }, { id: "team", label: "Team", icon: Users }]; return <AppLayout><header className="flex items-center justify-between border-b border-gray-100 bg-white px-5 py-5 pl-16 lg:px-8"><div><h1 className="font-display text-2xl font-bold text-brand">POS Management</h1><p className="mt-1 text-sm text-gray-500">Kelola outlet, menu, stok, shift, dan laporan.</p></div><SettingsIcon className="text-brand" /></header><main className="px-5 pb-28 pt-5 lg:px-8 lg:pb-10"><div className="flex gap-2 overflow-x-auto pb-2">{tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${tab === id ? "bg-brand text-white" : "bg-white text-gray-500 ring-1 ring-gray-100"}`}><Icon size={14} />{label}</button>)}</div>{tab === "overview" && <div className="mt-5 grid gap-4 sm:grid-cols-3"><Metric label="Omzet selesai" value={rupiah(total)} /><Metric label="Produk aktif" value={String(products.length)} /><Metric label="Order tersimpan" value={String(orders.length)} /></div>}{tab === "catalog" && <section className="mt-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100"><h2 className="font-display text-lg font-bold text-brand">Tambah produk</h2><div className="mt-4 grid gap-3 sm:grid-cols-4"><input value={name} onChange={(e) => setName(e.target.value)} className="rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none" placeholder="Nama menu" /><input value={price} onChange={(e) => setPrice(e.target.value)} type="number" className="rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none" placeholder="Harga" /><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className="rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none" placeholder="Stok" /><button onClick={addProduct} className="flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white"><Plus size={16} /> Simpan</button></div><div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{products.map((product) => <div key={product.id} className="rounded-2xl bg-brand-soft p-4"><p className="font-semibold text-brand">{product.nama}</p><p className="mt-1 text-sm text-gray-500">{rupiah(product.harga)}</p><p className="mt-2 text-xs text-gray-400">Stok {product.stok}</p></div>)}</div></section>}{tab === "inventory" && <section className="mt-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100"><h2 className="font-display text-lg font-bold text-brand">Stok realtime</h2><div className="mt-4 flex flex-col gap-3">{products.map((product) => <div key={product.id} className="flex items-center justify-between border-b border-gray-100 pb-3"><span className="text-sm font-medium text-brand">{product.nama}</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${product.stok <= 5 ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}>{product.stok} tersedia</span></div>)}</div></section>}{tab === "shift" && <section className="mt-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100"><h2 className="font-display text-lg font-bold text-brand">Shift kasir</h2><p className="mt-2 text-sm text-gray-500">Gunakan database Supabase untuk mencatat modal awal, kas masuk, kas keluar, dan rekonsiliasi akhir shift.</p><p className="mt-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Buka shift tersedia setelah user kasir terautentikasi dan outlet aktif dipilih.</p></section>}{tab === "team" && <section className="mt-5 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100"><h2 className="font-display text-lg font-bold text-brand">Role & akses</h2><div className="mt-4 grid gap-3 sm:grid-cols-2"><Metric label="Admin / Owner" value="Full access" /><Metric label="Kasir" value="POS & shift" /><Metric label="Dapur" value="Kitchen Display" /><Metric label="Manager" value="Reports & inventory" /></div></section>}</main></AppLayout>; }
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-3xl bg-brand p-5 text-white"><p className="text-xs text-white/60">{label}</p><p className="mt-2 font-display text-xl font-bold">{value}</p></div>; }
