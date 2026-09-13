@@ -1,5 +1,5 @@
 import { Clock, Heart, Plus, Star } from "lucide-react";
-import type { Food } from "@/lib/types";
+import { rupiah, type Food } from "@/lib/types";
 
 interface FoodCardProps {
   food: Food;
@@ -69,10 +69,10 @@ export function FoodCard({ food, isFav, onFav, onAdd, onDetail }: FoodCardProps)
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-gray-50 px-4 py-3 mt-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-brand">${food.price.toFixed(2)}</span>
+          <span className="text-lg font-bold text-brand">{rupiah(food.price)}</span>
           {food.originalPrice && (
             <span className="text-xs text-gray-400 line-through">
-              ${food.originalPrice.toFixed(2)}
+              {rupiah(food.originalPrice)}
             </span>
           )}
         </div>
