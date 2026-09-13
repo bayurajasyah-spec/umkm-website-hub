@@ -31,11 +31,26 @@ function CashierPage() {
     if (!cart.length) return toast.error("Tambahkan menu terlebih dahulu");
     if (cash < total) return toast.error("Nominal pembayaran belum cukup");
     setSubmitting(true);
-    const code = `POS-${Date.now().toString().slice(-6)}`;
-    const { error } = await supabase.from("orders").insert({ order_code: code, status: "diproses", metode_bayar: "cash", catatan: `${orderType} · Kasir`, subtotal, total });
+    const items = cart.map(({ product, qty }) => ({
+      product_id: product.id,
+      name: product.nama,
+      price: product.harga,
+      qty,
+      subtotal: product.harga * qty,
+    }));
+    const { data, error } = await supabase.rpc("create_pos_order", {
+      p_order_type: orderType.toLowerCase().replace(" ", "_"),
+      p_items: items,
+      p_subtotal: subtotal,
+      p_tax: tax,
+      p_total: total,
+      p_payment_method: "cash",
+      p_paid_amount: cash,
+      p_note: "Kasir POS",
+    });
     setSubmitting(false);
-    if (error) return toast.error("Checkout gagal. Periksa koneksi database.");
-    clearCart(); setCash(0); setShowCart(false); toast.success(`Order ${code} berhasil dibuat`);
+    if (error) return toast.error(error.message || "Checkout gagal. Periksa koneksi database.");
+    clearCart(); setCash(0); setShowCart(false); toast.success(`Order ${data.order_code} berhasil dibuat`);
   }
 
   return <AppLayout>
