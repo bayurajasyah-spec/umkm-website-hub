@@ -9,7 +9,10 @@ import {
   WalletCards,
   X,
 } from "lucide-react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +31,21 @@ interface SidebarProps {
 
 export function Sidebar({ open, close }: SidebarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("Akun kasir");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setEmail(data.user.email);
+    });
+  }, []);
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error("Logout gagal."); return; }
+    toast.success("Anda sudah logout.");
+    navigate({ to: "/login", replace: true });
+  }
 
   function isActive(to: string) {
     if (to === "/") return pathname === "/";
@@ -127,18 +145,18 @@ export function Sidebar({ open, close }: SidebarProps) {
         <div className="border-t border-white/10 px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="relative grid size-10 place-items-center rounded-full bg-gradient-to-br from-amber-200 to-rose-300 text-lg flex-shrink-0">
-              👩
+              <span className="text-sm font-bold text-brand">{email.slice(0, 1).toUpperCase()}</span>
               <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-brand bg-green-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="truncate text-sm font-semibold text-white">
-                Samantha Doe
+                {email}
               </div>
               <div className="truncate text-[11px] text-white/40">
                 Pro Member ⭐
               </div>
             </div>
-            <button className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition">
+            <button onClick={handleLogout} aria-label="Logout" className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition">
               <LogOut size={16} />
             </button>
           </div>

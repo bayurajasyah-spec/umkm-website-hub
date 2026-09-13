@@ -3,11 +3,14 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useLocation,
+  useNavigate,
   useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -140,11 +143,31 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [checkingSession, setCheckingSession] = useState(true);
+  const publicRoute = location.pathname === "/login";
+
+  useEffect(() => {
+    let active = true;
+    const validate = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+      setCheckingSession(false);
+      if (!data.session && !publicRoute) navigate({ to: "/login", replace: true });
+    };
+    void validate();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session && !publicRoute) navigate({ to: "/login", replace: true });
+    });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, [navigate, publicRoute]);
+
+  if (checkingSession && !publicRoute) return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Memeriksa sesi...</div>;
 
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
       </StoreProvider>
