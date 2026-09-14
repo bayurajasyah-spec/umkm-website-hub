@@ -11,10 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as KitchenRouteImport } from './routes/kitchen'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrderRouteImport } from './routes/order'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StaffRouteImport } from './routes/staff'
+import { Route as StoreRouteImport } from './routes/store'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as DetailIdRouteImport } from './routes/detail.$id'
 import { Route as ApiPublicWebhookPaymentRouteImport } from './routes/api/public/webhook/payment'
@@ -29,6 +37,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomersRoute = CustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
@@ -39,14 +52,49 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitchenRoute = KitchenRouteImport.update({
+  id: '/kitchen',
+  path: '/kitchen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrderRoute = OrderRouteImport.update({
   id: '/order',
   path: '/order',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WalletRoute = WalletRouteImport.update({
@@ -68,10 +116,18 @@ const ApiPublicWebhookPaymentRoute = ApiPublicWebhookPaymentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/inventory': typeof InventoryRoute
+  '/kitchen': typeof KitchenRoute
+  '/login': typeof LoginRoute
   '/order': typeof OrderRoute
+  '/products': typeof ProductsRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/store': typeof StoreRoute
   '/wallet': typeof WalletRoute
   '/detail/$id': typeof DetailIdRoute
   '/api/public/webhook/payment': typeof ApiPublicWebhookPaymentRoute
@@ -79,10 +135,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/inventory': typeof InventoryRoute
+  '/kitchen': typeof KitchenRoute
+  '/login': typeof LoginRoute
   '/order': typeof OrderRoute
+  '/products': typeof ProductsRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/store': typeof StoreRoute
   '/wallet': typeof WalletRoute
   '/detail/$id': typeof DetailIdRoute
   '/api/public/webhook/payment': typeof ApiPublicWebhookPaymentRoute
@@ -91,10 +155,18 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/inventory': typeof InventoryRoute
+  '/kitchen': typeof KitchenRoute
+  '/login': typeof LoginRoute
   '/order': typeof OrderRoute
+  '/products': typeof ProductsRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/staff': typeof StaffRoute
+  '/store': typeof StoreRoute
   '/wallet': typeof WalletRoute
   '/detail/$id': typeof DetailIdRoute
   '/api/public/webhook/payment': typeof ApiPublicWebhookPaymentRoute
@@ -104,10 +176,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/checkout'
+    | '/customers'
     | '/favorites'
     | '/history'
+    | '/inventory'
+    | '/kitchen'
+    | '/login'
     | '/order'
+    | '/products'
+    | '/reports'
     | '/settings'
+    | '/staff'
+    | '/store'
     | '/wallet'
     | '/detail/$id'
     | '/api/public/webhook/payment'
@@ -115,10 +195,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/checkout'
+    | '/customers'
     | '/favorites'
     | '/history'
+    | '/inventory'
+    | '/kitchen'
+    | '/login'
     | '/order'
+    | '/products'
+    | '/reports'
     | '/settings'
+    | '/staff'
+    | '/store'
     | '/wallet'
     | '/detail/$id'
     | '/api/public/webhook/payment'
@@ -126,10 +214,18 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/checkout'
+    | '/customers'
     | '/favorites'
     | '/history'
+    | '/inventory'
+    | '/kitchen'
+    | '/login'
     | '/order'
+    | '/products'
+    | '/reports'
     | '/settings'
+    | '/staff'
+    | '/store'
     | '/wallet'
     | '/detail/$id'
     | '/api/public/webhook/payment'
@@ -138,10 +234,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutRoute: typeof CheckoutRoute
+  CustomersRoute: typeof CustomersRoute
   FavoritesRoute: typeof FavoritesRoute
   HistoryRoute: typeof HistoryRoute
+  InventoryRoute: typeof InventoryRoute
+  KitchenRoute: typeof KitchenRoute
+  LoginRoute: typeof LoginRoute
   OrderRoute: typeof OrderRoute
+  ProductsRoute: typeof ProductsRoute
+  ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  StaffRoute: typeof StaffRoute
+  StoreRoute: typeof StoreRoute
   WalletRoute: typeof WalletRoute
   DetailIdRoute: typeof DetailIdRoute
   ApiPublicWebhookPaymentRoute: typeof ApiPublicWebhookPaymentRoute
@@ -163,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customers': {
+      id: '/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/favorites': {
       id: '/favorites'
       path: '/favorites'
@@ -177,6 +288,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kitchen': {
+      id: '/kitchen'
+      path: '/kitchen'
+      fullPath: '/kitchen'
+      preLoaderRoute: typeof KitchenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/order': {
       id: '/order'
       path: '/order'
@@ -184,11 +316,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wallet': {
@@ -218,10 +378,18 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutRoute: CheckoutRoute,
+  CustomersRoute: CustomersRoute,
   FavoritesRoute: FavoritesRoute,
   HistoryRoute: HistoryRoute,
+  InventoryRoute: InventoryRoute,
+  KitchenRoute: KitchenRoute,
+  LoginRoute: LoginRoute,
   OrderRoute: OrderRoute,
+  ProductsRoute: ProductsRoute,
+  ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  StaffRoute: StaffRoute,
+  StoreRoute: StoreRoute,
   WalletRoute: WalletRoute,
   DetailIdRoute: DetailIdRoute,
   ApiPublicWebhookPaymentRoute: ApiPublicWebhookPaymentRoute,

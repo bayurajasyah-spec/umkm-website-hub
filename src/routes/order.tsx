@@ -1,136 +1,60 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Minus, Plus, Search, ShoppingCart, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { FoodCard } from "@/components/FoodCard";
-import { dishes } from "@/lib/types";
+import { supabase } from "@/integrations/supabase/client";
+import { rupiah } from "@/lib/types";
+import { toFood, usePosProducts } from "@/lib/pos-data";
 import { useStoreActions, useStoreState } from "@/lib/store";
+import { toast } from "sonner";
 
-const filters = ["Rating 4.5+", "Price", "Delivery Time", "Distance"];
+export const Route = createFileRoute("/order")({ component: CashierPage, head: () => ({ meta: [{ title: "Kasir POS — BY.CASHIER" }] }) });
 
-export const Route = createFileRoute("/order")({
-  component: OrderPage,
-  head: () => ({
-    meta: [
-      { title: "Food Order — Delivero" },
-      { name: "description", content: "Search and order your favorite dishes from local restaurants." },
-      { property: "og:title", content: "Food Order — Delivero" },
-      { property: "og:description", content: "Search and order your favorite dishes from local restaurants." },
-      { property: "og:type", content: "website" },
-    ],
-    links: [{ rel: "canonical", href: "/order" }],
-  }),
-});
-
-function OrderPage() {
+function CashierPage() {
+  const { products, categories, loading } = usePosProducts();
+  const { cart, favorites } = useStoreState();
+  const { addToCart, removeFromCart, updateQty, toggleFavorite, getCartTotal, clearCart } = useStoreActions();
   const [query, setQuery] = useState("");
-  const navigate = useNavigate();
-  const { favorites } = useStoreState();
-  const { toggleFavorite, addToCart } = useStoreActions();
+  const [category, setCategory] = useState<string | null>(null);
+  const [orderType, setOrderType] = useState("Dine In");
+  const [showCart, setShowCart] = useState(false);
+  const [cash, setCash] = useState(0);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [discountValue, setDiscountValue] = useState(0);
+  const [discountType, setDiscountType] = useState<"amount" | "percent">("amount");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [submitting, setSubmitting] = useState(false);
+  const visible = useMemo(() => products.filter((product) => (!category || product.category_id === category) && product.nama.toLowerCase().includes(query.toLowerCase())), [products, category, query]);
+  const subtotal = getCartTotal();
+  const discount = discountType === "percent" ? Math.min(subtotal, Math.round(subtotal * Math.min(100, Math.max(0, discountValue)) / 100)) : Math.min(subtotal, Math.max(0, discountValue));
+  const taxableSubtotal = subtotal - discount;
+  const tax = Math.round(taxableSubtotal * 0.1);
+  const total = taxableSubtotal + tax;
+  const change = Math.max(0, cash - total);
 
-  const visible = dishes.filter(
-    (x) =>
-      x.name.toLowerCase().includes(query.toLowerCase()) ||
-      x.restaurant.toLowerCase().includes(query.toLowerCase())
-  );
+  async function checkout() {
+    if (!cart.length) return toast.error("Tambahkan menu terlebih dahulu");
+    if (cash < total) return toast.error("Nominal pembayaran belum cukup");
+    setSubmitting(true);
+    const items = cart.map(({ product, qty }) => ({ product_id: product.id, name: product.nama, price: product.harga, qty, subtotal: product.harga * qty }));
+    const { data, error } = await supabase.rpc("create_pos_order", { p_order_type: orderType.toLowerCase().replace(" ", "_"), p_items: items, p_subtotal: subtotal, p_tax: tax, p_total: total, p_payment_method: paymentMethod, p_paid_amount: cash, p_note: JSON.stringify({ orderType, customerName: customerName.trim() || null, customerPhone: customerPhone.trim() || null, discount, discountType, discountValue }) });
+    setSubmitting(false);
+    if (error) return toast.error(error.message || "Checkout gagal. Periksa koneksi database.");
+    clearCart(); setCash(0); setShowCart(false); toast.success(`Order ${data.order_code} berhasil dibuat`);
+  }
 
-  return (
-    <AppLayout>
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-gray-100 bg-white/95 px-5 pl-16 backdrop-blur lg:px-8">
-        <h1 className="font-display text-2xl font-bold text-brand">
-          Food Order
-        </h1>
-      </header>
+  const panelProps = { cart, subtotal, discountValue, discountType, tax, total, cash, change, customerName, customerPhone, paymentMethod, orderType, setOrderType, setCash, setCustomerName, setCustomerPhone, setDiscountValue, setDiscountType, setPaymentMethod, updateQty, removeFromCart, checkout, submitting };
+  return <AppLayout>
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 py-4 pl-16 backdrop-blur lg:px-8 lg:pl-8"><div><p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Kasir aktif · Outlet utama</p><h1 className="font-display text-2xl font-bold text-brand">New Order</h1></div><button onClick={() => setShowCart(true)} className="relative flex items-center gap-2 rounded-2xl bg-brand px-4 py-3 text-sm font-bold text-white"><ShoppingCart size={17} /> Cart <span className="grid size-5 place-items-center rounded-full bg-accent-yellow text-[11px] text-brand">{cart.reduce((sum, item) => sum + item.qty, 0)}</span></button></header>
+    <div className="grid gap-6 px-5 pb-28 pt-5 lg:px-8 lg:pb-10 xl:grid-cols-[minmax(0,1fr)_360px]"><section><div className="flex flex-wrap gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-gray-100"><button onClick={() => setCategory(null)} className={`rounded-xl px-4 py-2 text-xs font-bold ${!category ? "bg-brand text-white" : "text-gray-500"}`}>Semua Menu</button>{categories.map((item) => <button key={item.id} onClick={() => setCategory(item.id)} className={`rounded-xl px-4 py-2 text-xs font-bold ${category === item.id ? "bg-brand text-white" : "text-gray-500"}`}>{item.nama}</button>)}</div><label className="mt-4 flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-gray-100"><Search size={17} className="text-gray-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="flex-1 bg-transparent text-sm outline-none" placeholder="Cari menu atau scan barcode..." /></label>{loading ? <div className="mt-5 rounded-3xl bg-white p-16 text-center text-sm text-gray-500">Memuat katalog menu...</div> : <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">{visible.map((product) => <FoodCard key={product.id} food={toFood(product)} isFav={favorites.includes(product.id)} onFav={() => toggleFavorite(product.id)} onAdd={() => addToCart(product)} onDetail={() => addToCart(product)} />)}</div>}</section><CartPanel {...panelProps} /></div>
+    {showCart && <div className="fixed inset-0 z-50 bg-brand/40 p-4 backdrop-blur-sm xl:hidden"><div className="ml-auto h-full max-w-md overflow-y-auto rounded-3xl bg-[#f7f7fa] p-4"><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-xl font-bold text-brand">Current Order</h2><button onClick={() => setShowCart(false)} className="rounded-xl bg-white p-2"><X size={18} /></button></div><CartPanel {...panelProps} /></div></div>}
+  </AppLayout>;
+}
 
-      <div className="px-5 pb-28 pt-5 lg:px-8 lg:pb-10">
-        {/* Search bar */}
-        <div className="mb-5">
-          <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm ring-1 ring-gray-100 focus-within:ring-brand/30 transition">
-            <Search size={17} className="flex-shrink-0 text-gray-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
-              placeholder="Search dishes, restaurants…"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="text-gray-400 hover:text-gray-600 transition"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </label>
-        </div>
-
-        {/* Filter chips */}
-        <div className="mb-6 flex flex-wrap items-center gap-2.5">
-          <button className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition hover:border-brand/30">
-            <SlidersHorizontal size={14} />
-            Filters
-          </button>
-          {filters.map((f, i) => (
-            <button
-              key={f}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition ${
-                i === 0
-                  ? "bg-brand text-white shadow-sm"
-                  : "border border-gray-200 bg-white text-gray-600 shadow-sm hover:border-brand/30"
-              }`}
-            >
-              {f}
-              {i === 0 && <X size={13} />}
-              {i > 0 && <span className="text-gray-400">⌄</span>}
-            </button>
-          ))}
-        </div>
-
-        {/* Results count */}
-        {query && (
-          <p className="mb-4 text-sm text-gray-500">
-            <span className="font-semibold text-brand">{visible.length}</span>{" "}
-            result{visible.length !== 1 ? "s" : ""} for "
-            <span className="font-medium">{query}</span>"
-          </p>
-        )}
-
-        {/* Grid */}
-        {visible.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {visible.map((food) => (
-              <FoodCard
-                key={food.id}
-                food={food}
-                isFav={favorites.includes(food.id)}
-                onFav={() => toggleFavorite(food.id)}
-                onAdd={() => addToCart(food)}
-                onDetail={() =>
-                  navigate({ to: "/detail/$id", params: { id: String(food.id) } })
-                }
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 shadow-sm ring-1 ring-gray-100">
-            <div className="grid size-16 place-items-center rounded-3xl bg-brand-soft">
-              <Search size={28} className="text-[#7c5cbf]" />
-            </div>
-            <h2 className="mt-5 font-display text-xl font-bold text-brand">
-              No Results Found
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Try a different keyword or browse categories.
-            </p>
-            <button
-              onClick={() => setQuery("")}
-              className="mt-6 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white"
-            >
-              Clear Search
-            </button>
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
+function CartPanel(props: any) { return <aside className="rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-[#ece9f3]"><CartContent {...props} /></aside>; }
+function CartContent({ cart, subtotal, discountValue, discountType, tax, total, cash, change, customerName, customerPhone, paymentMethod, orderType, setOrderType, setCash, setCustomerName, setCustomerPhone, setDiscountValue, setDiscountType, setPaymentMethod, updateQty, removeFromCart, checkout, submitting }: any) {
+  const paymentOptions = [{ label: "Tunai", value: "cash" }, { label: "Kartu", value: "card" }, { label: "Transfer", value: "transfer" }, { label: "QRIS", value: "qris" }];
+  return <div className="text-brand"><div className="flex items-center justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8b86a1]">Order baru</p><h2 className="mt-1 font-display text-xl font-bold">Current Order</h2></div><span className="rounded-full bg-[#f0edff] px-3 py-1 text-xs font-bold text-[#321170]">{cart.length} item</span></div><div className="mt-4 grid gap-2"><input value={customerName} onChange={(event) => setCustomerName(event.target.value)} className="rounded-2xl border border-[#e8e5ee] bg-[#fbfbfd] px-4 py-3 text-sm outline-none placeholder:text-[#aaa6b6] focus:border-[#321170]" placeholder="Nama Customer (opsional)" /><input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} className="rounded-2xl border border-[#e8e5ee] bg-[#fbfbfd] px-4 py-3 text-sm outline-none placeholder:text-[#aaa6b6] focus:border-[#321170]" placeholder="No. HP (untuk WA / e-struk)" inputMode="tel" /></div><div className="mt-4 grid grid-cols-3 gap-2">{["Dine In", "Take Away", "Delivery"].map((type) => <button key={type} onClick={() => setOrderType(type)} className={`rounded-xl py-2 text-[11px] font-bold ${orderType === type ? "bg-[#321170] text-white" : "bg-[#f7f6fa] text-[#77728b]"}`}>{type}</button>)}</div><div className="mt-5 flex min-h-40 flex-col gap-3">{cart.length ? cart.map((item: any) => <div key={item.product.id} className="flex gap-3 border-b border-[#f0eef4] pb-3"><img src={item.product.foto_url ?? "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100"} alt="" className="size-12 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{item.product.nama}</p><p className="text-xs text-[#928da0]">{rupiah(item.product.harga)}</p><div className="mt-2 flex items-center gap-2"><button onClick={() => updateQty(item.product.id, item.qty - 1)} className="rounded-lg bg-[#f3f1f7] p-1"><Minus size={12} /></button><span className="w-5 text-center text-xs font-bold">{item.qty}</span><button onClick={() => updateQty(item.product.id, item.qty + 1)} className="rounded-lg bg-[#f3f1f7] p-1"><Plus size={12} /></button><button onClick={() => removeFromCart(item.product.id)} className="ml-auto text-[#a5a0ae]"><Trash2 size={15} /></button></div></div></div>) : <p className="grid flex-1 place-items-center py-10 text-sm text-[#898397]">Keranjang kosong</p>}</div><div className="mt-5 border-t border-[#eeeaf3] pt-4 text-sm"><div className="flex justify-between"><span className="text-[#706b7c]">Subtotal</span><span className="font-semibold">{rupiah(subtotal)}</span></div><div className="mt-3 flex items-center justify-between gap-2"><span className="text-[#706b7c]">Diskon</span><div className="flex gap-2"><input type="number" min="0" value={discountValue || ""} onChange={(event) => setDiscountValue(Number(event.target.value))} className="w-24 rounded-xl border border-[#e8e5ee] px-3 py-2 text-sm outline-none" placeholder="0" /><select value={discountType} onChange={(event) => setDiscountType(event.target.value as "amount" | "percent")} className="rounded-xl border border-[#e8e5ee] px-2 py-2 text-sm"><option value="amount">Rp</option><option value="percent">%</option></select></div></div><div className="mt-2 flex justify-between"><span className="text-[#706b7c]">Pajak 10%</span><span className="font-semibold">{rupiah(tax)}</span></div><div className="mt-4 flex justify-between border-t border-[#eeeaf3] pt-4"><span className="font-bold">TOTAL</span><span className="font-display text-2xl font-bold text-[#2463dc]">{rupiah(total)}</span></div><div className="mt-5 grid grid-cols-2 gap-2"><p className="col-span-2 text-sm font-bold text-[#6f697b]">Metode Pembayaran</p>{paymentOptions.map((method) => <button type="button" key={method.value} onClick={() => setPaymentMethod(method.value)} className={`rounded-2xl border py-3 text-sm font-semibold transition ${paymentMethod === method.value ? "border-[#2463dc] bg-[#2463dc] text-white shadow-sm" : "border-[#e7e4eb] bg-white text-brand hover:border-[#bdb6cf]"}`}>{method.label}</button>)}</div><label className="mt-5 block text-sm font-bold text-[#6f697b]">Jumlah Bayar<input type="number" min="0" value={cash || ""} onChange={(event) => setCash(Number(event.target.value))} className="mt-2 w-full rounded-2xl border border-[#e8e5ee] bg-[#fbfbfd] px-4 py-3 text-base outline-none placeholder:text-[#aaa6b6]" placeholder="Masukkan nominal" /></label><div className="mt-3 flex items-center justify-between rounded-2xl bg-[#e8faf2] px-4 py-3 text-sm"><span className="font-semibold text-[#087d59]">Kembalian</span><span className="font-bold text-[#087d59]">{rupiah(change)}</span></div><div className="mt-5 grid grid-cols-2 gap-3"><button type="button" onClick={() => { setCash(0); setCustomerName(""); setCustomerPhone(""); setDiscountValue(0); }} className="rounded-2xl bg-[#f0f1f4] py-3.5 text-sm font-bold text-[#321170]">Batal</button><button disabled={submitting} onClick={checkout} className="rounded-2xl bg-[#00a765] py-3.5 text-sm font-bold text-white shadow-sm disabled:opacity-50">{submitting ? "Menyimpan..." : "Bayar & Cetak"}</button></div></div></div>;
 }

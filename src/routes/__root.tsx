@@ -3,16 +3,27 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useLocation,
+  useNavigate,
   useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "../lib/store";
+
+function RoutePendingComponent() {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-1 overflow-hidden bg-transparent" aria-label="Memuat halaman">
+      <div className="h-full w-1/3 animate-[loading-bar_1s_ease-in-out_infinite] rounded-full bg-accent-yellow" />
+    </div>
+  );
+}
 
 function NotFoundComponent() {
   return (
@@ -79,14 +90,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Delivero — Food Ordering UMKM" },
+      { title: "BY.CASHIER — Food Ordering UMKM" },
       { name: "description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
-      { name: "author", content: "Delivero" },
-      { property: "og:title", content: "Delivero — Food Ordering UMKM" },
+      { name: "author", content: "BY.CASHIER" },
+      { property: "og:title", content: "BY.CASHIER — Food Ordering UMKM" },
       { property: "og:description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Delivero" },
+      { name: "twitter:site", content: "@BY.CASHIER" },
     ],
     links: [
       {
@@ -110,6 +121,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   shellComponent: RootShell,
+  pendingComponent: RoutePendingComponent,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -131,11 +143,31 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [checkingSession, setCheckingSession] = useState(true);
+  const publicRoute = location.pathname === "/login";
+
+  useEffect(() => {
+    let active = true;
+    const validate = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+      setCheckingSession(false);
+      if (!data.session && !publicRoute) navigate({ to: "/login", replace: true });
+    };
+    void validate();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session && !publicRoute) navigate({ to: "/login", replace: true });
+    });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, [navigate, publicRoute]);
+
+  if (checkingSession && !publicRoute) return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Memeriksa sesi...</div>;
 
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
       </StoreProvider>

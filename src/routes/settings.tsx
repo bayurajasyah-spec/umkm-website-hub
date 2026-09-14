@@ -1,38 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings as SettingsIcon } from "lucide-react";
+import { ImagePlus, Save, Settings as SettingsIcon } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/settings")({
-  component: SettingsPage,
-  head: () => ({
-    meta: [
-      { title: "Settings — Delivero" },
-      { name: "description", content: "Manage your account settings." },
-      { property: "og:title", content: "Settings — Delivero" },
-      { property: "og:description", content: "Manage your account settings." },
-      { property: "og:type", content: "website" },
-    ],
-    links: [{ rel: "canonical", href: "/settings" }],
-  }),
-});
-
-function SettingsPage() {
-  return (
-    <AppLayout>
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-gray-100 bg-white/95 px-5 pl-16 backdrop-blur lg:px-8">
-        <h1 className="font-display text-2xl font-bold text-brand">Settings</h1>
-      </header>
-      <div className="flex flex-col items-center justify-center px-5 pb-28 pt-20 lg:px-8 lg:pb-10">
-        <div className="grid size-16 place-items-center rounded-3xl bg-brand-soft">
-          <SettingsIcon size={28} className="text-[#7c5cbf]" />
-        </div>
-        <h2 className="mt-5 font-display text-xl font-bold text-brand">
-          Settings
-        </h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Account settings will be available soon.
-        </p>
-      </div>
-    </AppLayout>
-  );
+export const Route = createFileRoute("/settings")({ component: SettingsPage, head: () => ({ meta: [{ title: "BY.CASHIER — Pengaturan" }] }) });
+type Settings = { store_name: string; phone: string; email: string; city: string; address: string; logo_url: string | null; tax_enabled: boolean; tax_percent: number; payment_methods: string[]; dana_enabled: boolean; dana_number: string; dana_recipient: string; dana_qr_url: string | null; receipt_logo: boolean; receipt_npwp: boolean; receipt_footer: string };
+const initial: Settings = { store_name: "BY.CASHIER", phone: "", email: "", city: "", address: "", logo_url: null, tax_enabled: false, tax_percent: 10, payment_methods: ["Tunai", "Kartu", "Transfer", "QRIS"], dana_enabled: false, dana_number: "", dana_recipient: "", dana_qr_url: null, receipt_logo: true, receipt_npwp: true, receipt_footer: "Terima kasih atas pembelian Anda!" };
+const methods = ["Tunai", "Kartu", "Transfer", "QRIS", "DANA"];
+function SettingsPage() { const [settings, setSettings] = useState(initial); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => { let live = true; const load = async () => { const { data: { user } } = await supabase.auth.getUser(); if (!user) return; setUserId(user.id); const { data } = await supabase.from("store_settings").select("*").eq("user_id", user.id).maybeSingle(); if (live && data) setSettings({ ...initial, ...data, payment_methods: Array.isArray(data.payment_methods) ? data.payment_methods : initial.payment_methods }); setLoading(false); }; void load(); const channel = supabase.channel("store-settings-live").on("postgres_changes", { event: "UPDATE", schema: "public", table: "store_settings" }, ({ new: row }) => { if (live && row.user_id === userId) setSettings({ ...initial, ...row, payment_methods: row.payment_methods ?? [] }); }).subscribe(); return () => { live = false; void supabase.removeChannel(channel); }; }, [userId]);
+  const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings((current) => ({ ...current, [key]: value }));
+  const upload = async (file: File, field: "logo_url" | "dana_qr_url") => { if (!userId) return; const path = `${userId}/${field}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`; const { error } = await supabase.storage.from("store-assets").upload(path, file, { upsert: true, contentType: file.type }); if (error) return toast.error(error.message); const { data } = supabase.storage.from("store-assets").getPublicUrl(path); set(field, data.publicUrl); toast.success("File berhasil diunggah."); };
+  const save = async () => { if (!userId) return toast.error("Sesi login tidak ditemukan."); setSaving(true); const { error } = await supabase.from("store_settings").upsert({ ...settings, user_id: userId }, { onConflict: "user_id" }); setSaving(false); if (error) return toast.error(error.message); toast.success("Pengaturan tersimpan real-time."); };
+  if (loading) return <AppLayout><main className="p-6 text-muted-foreground">Memuat pengaturan...</main></AppLayout>;
+  return <AppLayout><header className="flex items-center justify-between border-b border-gray-100 bg-white px-5 py-5 pl-16 lg:px-8"><div><h1 className="font-display text-3xl font-bold text-brand">Pengaturan</h1><p className="mt-1 text-sm text-gray-500">Konfigurasi toko, pajak, pembayaran, dan struk.</p></div><SettingsIcon className="text-brand" /></header><main className="mx-auto max-w-4xl space-y-5 bg-slate-50 px-5 pb-28 pt-5 lg:px-8 lg:pb-10"><Card title="Logo Toko"><Upload label="Klik atau drag file untuk upload logo" value={settings.logo_url} onChange={(file) => void upload(file, "logo_url")} /></Card><Card title="Informasi Toko"><div className="grid gap-4 md:grid-cols-2"><Field label="Nama Toko" value={settings.store_name} onChange={(v) => set("store_name", v)} /><Field label="Nomor Telepon" value={settings.phone} onChange={(v) => set("phone", v)} /><Field label="Email" type="email" value={settings.email} onChange={(v) => set("email", v)} /><Field label="Kota" value={settings.city} onChange={(v) => set("city", v)} /><Field label="Alamat" value={settings.address} onChange={(v) => set("address", v)} area /></div></Card><Card title="Pengaturan Pajak"><Check checked={settings.tax_enabled} onChange={(v) => set("tax_enabled", v)} label="Terapkan pajak otomatis" /><Field label="Persentase Pajak (%)" type="number" value={String(settings.tax_percent)} onChange={(v) => set("tax_percent", Number(v))} /></Card><Card title="Metode Pembayaran"><div className="grid gap-3 sm:grid-cols-2">{methods.map((method) => <Check key={method} checked={settings.payment_methods.includes(method)} onChange={(checked) => set("payment_methods", checked ? [...settings.payment_methods, method] : settings.payment_methods.filter((item) => item !== method))} label={method} />)}</div></Card><Card title="Akun DANA Merchant"><p className="mb-4 text-sm text-gray-500">Data ini akan digunakan kasir saat pelanggan memilih DANA.</p><div className="grid gap-4 md:grid-cols-2"><Field label="Nomor DANA" value={settings.dana_number} onChange={(v) => set("dana_number", v)} /><Field label="Nama Penerima" value={settings.dana_recipient} onChange={(v) => set("dana_recipient", v)} /></div><div className="mt-4"><Upload label="Upload screenshot QR DANA" value={settings.dana_qr_url} onChange={(file) => void upload(file, "dana_qr_url")} /></div><Check checked={settings.dana_enabled} onChange={(v) => set("dana_enabled", v)} label="Aktifkan pembayaran via DANA" /></Card><Card title="Kustomisasi Struk"><Check checked={settings.receipt_logo} onChange={(v) => set("receipt_logo", v)} label="Tampilkan logo di struk" /><Check checked={settings.receipt_npwp} onChange={(v) => set("receipt_npwp", v)} label="Tampilkan NPWP di struk" /><Field label="Catatan / Footer Custom" value={settings.receipt_footer} onChange={(v) => set("receipt_footer", v)} area /></Card><button onClick={() => void save()} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-lg font-bold text-white disabled:opacity-60"><Save size={20} />{saving ? "Menyimpan..." : "Simpan Pengaturan"}</button></main></AppLayout>;
 }
+function Card({ title, children }: { title: string; children: ReactNode }) { return <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-100"><h2 className="text-xl font-bold text-brand">{title}</h2><div className="mt-5 space-y-4">{children}</div></section>; }
+function Field({ label, value, onChange, type = "text", area = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; area?: boolean }) { const className = "mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-brand"; return <label className="block text-sm font-semibold text-slate-700">{label}{area ? <textarea value={value} onChange={(e) => onChange(e.target.value)} className={`${className} min-h-24`} /> : <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={className} />}</label>; }
+function Check({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) { return <label className="flex items-center gap-3 text-base text-slate-800"><input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-5 accent-blue-600" />{label}</label>; }
+function Upload({ label, value, onChange }: { label: string; value: string | null; onChange: (file: File) => void }) { return <label className="grid min-h-40 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-slate-300 text-center text-slate-500 hover:border-blue-500">{value ? <img src={value} alt="Pratinjau file toko" className="max-h-32 max-w-full object-contain" /> : <span><ImagePlus className="mx-auto" /><span className="mt-2 block">{label}</span></span>}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file) onChange(file); }} /></label>; }

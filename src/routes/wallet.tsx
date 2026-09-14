@@ -10,9 +10,9 @@ export const Route = createFileRoute("/wallet")({
   component: WalletPage,
   head: () => ({
     meta: [
-      { title: "Bills & Wallet — Delivero" },
+      { title: "Bills & Wallet — BY.CASHIER" },
       { name: "description", content: "Manage your balance and top up your wallet." },
-      { property: "og:title", content: "Bills & Wallet — Delivero" },
+      { property: "og:title", content: "Bills & Wallet — BY.CASHIER" },
       { property: "og:description", content: "Manage your balance and top up your wallet." },
       { property: "og:type", content: "website" },
     ],

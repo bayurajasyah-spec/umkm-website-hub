@@ -6,9 +6,9 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
   head: () => ({
     meta: [
-      { title: "Order History — Delivero" },
+      { title: "Order History — BY.CASHIER" },
       { name: "description", content: "View your past orders." },
-      { property: "og:title", content: "Order History — Delivero" },
+      { property: "og:title", content: "Order History — BY.CASHIER" },
       { property: "og:description", content: "View your past orders." },
       { property: "og:type", content: "website" },
     ],

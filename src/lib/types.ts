@@ -29,6 +29,25 @@ export type Product = {
   aktif: boolean;
 };
 
+export type Food = {
+  id: string;
+  name: string;
+  restaurant: string;
+  description: string;
+  price: number;
+  image: string;
+  rating: number;
+  reviews: number;
+  time: string;
+  badge?: string;
+  discount?: string;
+  originalPrice?: number;
+  stock?: number;
+  product?: Product;
+};
+
+export const dishes: Food[] = [];
+
 export type CartItem = {
   product: Product;
   qty: number;
