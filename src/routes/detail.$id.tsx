@@ -26,7 +26,7 @@ export const Route = createFileRoute("/detail/$id")({
     const food = dishes.find((d) => String(d.id) === params.id);
     return {
       meta: [
-        { title: food ? `${food.name} — Delivero` : "Detail — Delivero" },
+        { title: food ? `${food.name} — BY.CASHIER` : "Detail — BY.CASHIER" },
         {
           name: "description",
           content: food
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/detail/$id")({
         },
         {
           property: "og:title",
-          content: food ? `${food.name} — Delivero` : "Detail — Delivero",
+          content: food ? `${food.name} — BY.CASHIER` : "Detail — BY.CASHIER",
         },
         {
           property: "og:description",

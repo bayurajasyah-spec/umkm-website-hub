@@ -17,13 +17,13 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
   head: () => ({
     meta: [
-      { title: "Checkout & Ongkir — Delivero" },
+      { title: "Checkout & Ongkir — BY.CASHIER" },
       {
         name: "description",
         content:
           "Hitung ongkos kirim RajaOngkir, isi alamat, dan bayar pesanan dengan QRIS secara instan.",
       },
-      { property: "og:title", content: "Checkout & Ongkir — Delivero" },
+      { property: "og:title", content: "Checkout & Ongkir — BY.CASHIER" },
       {
         property: "og:description",
         content: "Hitung ongkir RajaOngkir dan bayar pesanan dengan QRIS.",

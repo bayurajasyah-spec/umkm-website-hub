@@ -9,7 +9,7 @@ import { useStoreActions, useStoreState } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
-  head: () => ({ meta: [{ title: "Dashboard Kasir — Delivero" }, { name: "description", content: "Dashboard POS F&B realtime Delivero." }] }),
+  head: () => ({ meta: [{ title: "Dashboard Kasir — BY.CASHIER" }, { name: "description", content: "Dashboard POS F&B realtime BY.CASHIER." }] }),
 });
 
 function DashboardPage() {

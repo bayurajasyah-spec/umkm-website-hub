@@ -53,7 +53,7 @@ function LoginPage() {
       <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-xl ring-1 ring-black/5">
         <div className="mb-8 flex items-center gap-3">
           <div className="grid size-12 place-items-center rounded-2xl bg-accent-yellow text-brand"><Utensils /></div>
-          <div><p className="text-xl font-black text-brand">Delivero</p><p className="text-xs text-muted-foreground">F&B Cashier POS</p></div>
+          <div><p className="text-xl font-black text-brand">BY.CASHIER</p><p className="text-xs text-muted-foreground">F&B Cashier POS</p></div>
         </div>
         <h1 className="text-2xl font-bold text-brand">{registering ? "Buat akun kasir" : "Masuk ke akun kasir"}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{registering ? "Daftarkan akun operasional baru untuk mengakses POS." : "Gunakan akun operasional Anda untuk mengakses POS."}</p>

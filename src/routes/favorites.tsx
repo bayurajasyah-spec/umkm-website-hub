@@ -9,9 +9,9 @@ export const Route = createFileRoute("/favorites")({
   component: FavoritesPage,
   head: () => ({
     meta: [
-      { title: "Favorites — Delivero" },
+      { title: "Favorites — BY.CASHIER" },
       { name: "description", content: "Your saved favorite dishes." },
-      { property: "og:title", content: "Favorites — Delivero" },
+      { property: "og:title", content: "Favorites — BY.CASHIER" },
       { property: "og:description", content: "Your saved favorite dishes." },
       { property: "og:type", content: "website" },
     ],
