@@ -25,14 +25,21 @@ function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setPending(false);
-    if (error) {
-      toast.error("Email atau password tidak valid.");
-      return;
+    try {
+      const request = supabase.auth.signInWithPassword({ email: email.trim(), password });
+      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Koneksi autentikasi timeout")), 12000));
+      const { error } = await Promise.race([request, timeout]);
+      if (error) {
+        toast.error(error.message.includes("Invalid login credentials") ? "Email atau password tidak valid." : error.message);
+        return;
+      }
+      toast.success("Login berhasil.");
+      navigate({ to: "/", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login gagal. Periksa koneksi Supabase.");
+    } finally {
+      setPending(false);
     }
-    toast.success("Login berhasil.");
-    navigate({ to: "/", replace: true });
   }
 
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
@@ -40,12 +47,19 @@ function LoginPage() {
     if (password.length < 8) return toast.error("Password minimal 8 karakter.");
     if (password !== confirmPassword) return toast.error("Konfirmasi password tidak sama.");
     setPending(true);
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
-    setPending(false);
-    if (error) return toast.error(error.message);
-    if (!data.session) return toast.success("Registrasi berhasil. Cek email untuk konfirmasi akun.");
-    toast.success("Akun berhasil dibuat.");
-    navigate({ to: "/", replace: true });
+    try {
+      const request = supabase.auth.signUp({ email: email.trim(), password });
+      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Koneksi autentikasi timeout")), 12000));
+      const { data, error } = await Promise.race([request, timeout]);
+      if (error) return toast.error(error.message);
+      if (!data.session) return toast.success("Registrasi berhasil. Cek email untuk konfirmasi akun.");
+      toast.success("Akun berhasil dibuat.");
+      navigate({ to: "/", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registrasi gagal. Periksa koneksi Supabase.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
