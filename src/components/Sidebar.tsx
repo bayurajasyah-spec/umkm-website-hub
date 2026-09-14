@@ -153,7 +153,7 @@ export function Sidebar({ open, close }: SidebarProps) {
             <Link
               to="/order"
               onClick={close}
-              className="mt-3 block w-full rounded-xl bg-blue-500 py-3 text-center text-sm font-bold text-white transition hover:brightness-105 active:scale-[0.98]"
+              className="mt-3 block w-full rounded-xl bg-brand py-3 text-center text-sm font-bold text-white transition hover:brightness-105 active:scale-[0.98]"
             >
               Buka Kasir / POS
             </Link>
