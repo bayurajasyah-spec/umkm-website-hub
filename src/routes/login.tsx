@@ -16,22 +16,48 @@ function LoginPage() {
 
   useEffect(() => {
     let active = true;
-    const completeConfirmation = async () => {
-      const code = new URLSearchParams(window.location.search).get("code");
+    const finishAuth = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const errorDescription = params.get("error_description");
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+      if (errorDescription) {
+        toast.error(decodeURIComponent(errorDescription.replace(/\+/g, " ")));
+        window.history.replaceState({}, document.title, "/login");
+        return;
+      }
+
+      let authError: string | null = null;
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
+        authError = error?.message ?? null;
+      } else if (hash.get("access_token") && hash.get("refresh_token")) {
+        const { error } = await supabase.auth.setSession({
+          access_token: hash.get("access_token")!,
+          refresh_token: hash.get("refresh_token")!,
+        });
+        authError = error?.message ?? null;
+      }
+
+      if (code || hash.get("access_token")) {
         window.history.replaceState({}, document.title, "/login");
-        if (error) {
-          toast.error("Konfirmasi email gagal. Silakan minta link baru.");
+        window.location.hash = "";
+        if (authError) {
+          toast.error(`Konfirmasi login gagal: ${authError}`);
           return;
         }
         toast.success("Email berhasil dikonfirmasi.");
       }
+
       const { data } = await supabase.auth.getSession();
       if (active && data.session) navigate({ to: "/", replace: true });
     };
-    void completeConfirmation();
-    return () => { active = false; };
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (active && session && event === "SIGNED_IN") navigate({ to: "/", replace: true });
+    });
+    void finishAuth();
+    return () => { active = false; listener.subscription.unsubscribe(); };
   }, [navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
