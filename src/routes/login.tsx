@@ -16,9 +16,21 @@ function LoginPage() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
+    const completeConfirmation = async () => {
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        window.history.replaceState({}, document.title, "/login");
+        if (error) {
+          toast.error("Konfirmasi email gagal. Silakan minta link baru.");
+          return;
+        }
+        toast.success("Email berhasil dikonfirmasi.");
+      }
+      const { data } = await supabase.auth.getSession();
       if (active && data.session) navigate({ to: "/", replace: true });
-    });
+    };
+    void completeConfirmation();
     return () => { active = false; };
   }, [navigate]);
 
@@ -48,7 +60,7 @@ function LoginPage() {
     if (password !== confirmPassword) return toast.error("Konfirmasi password tidak sama.");
     setPending(true);
     try {
-      const request = supabase.auth.signUp({ email: email.trim(), password });
+      const request = supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/login` } });
       const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Koneksi autentikasi timeout")), 12000));
       const { data, error } = await Promise.race([request, timeout]);
       if (error) return toast.error(error.message);
