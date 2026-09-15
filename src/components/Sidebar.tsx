@@ -2,6 +2,7 @@ import {
   BarChart3,
   Boxes,
   Heart,
+  Calculator,
   LayoutDashboard,
   LogOut,
   PackageCheck,
@@ -33,6 +34,7 @@ const navGroups = [
     items: [
       { to: "/products", label: "Produk & Menu", icon: Boxes },
       { to: "/inventory", label: "Inventory & Stok", icon: Boxes },
+      { to: "/hpp", label: "Kalkulator HPP", icon: Calculator },
       { to: "/kitchen", label: "Kitchen Display", icon: Utensils },
       { to: "/favorites", label: "Favorit Menu", icon: Heart },
     ],
