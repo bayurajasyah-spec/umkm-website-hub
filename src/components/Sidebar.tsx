@@ -66,11 +66,26 @@ export function Sidebar({ open, close }: SidebarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [email, setEmail] = useState("Akun kasir");
+  const [displayName, setDisplayName] = useState("Akun kasir");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setEmail(data.user.email);
-    });
+    let active = true;
+    const loadAccountName = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active || !data.user) return;
+      const accountEmail = data.user.email ?? "";
+      setEmail(accountEmail || "Akun kasir");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nama")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (!active) return;
+      const registeredName = profile?.nama?.trim();
+      setDisplayName(registeredName || accountEmail.split("@")[0] || "Akun kasir");
+    };
+    void loadAccountName();
+    return () => { active = false; };
   }, []);
 
   async function handleLogout() {
@@ -171,10 +186,10 @@ export function Sidebar({ open, close }: SidebarProps) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="truncate text-sm font-semibold text-white">
-                {email}
+                {displayName}
               </div>
               <div className="truncate text-[11px] text-white/40">
-                Pro Member ⭐
+                {email}
               </div>
             </div>
             <button onClick={handleLogout} aria-label="Logout" className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition">
