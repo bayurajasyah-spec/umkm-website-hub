@@ -101,6 +101,14 @@ function CheckoutPage() {
   };
 
   const handlePay = async () => {
+    if (cart.length === 0) {
+      toast.error("Keranjang masih kosong");
+      return;
+    }
+    if (!name.trim() || !phone.trim() || !address.trim()) {
+      toast.error("Lengkapi nama, nomor HP, dan alamat pengiriman");
+      return;
+    }
     if (!destination || !shipping) {
       toast.error("Pilih tujuan dan layanan pengiriman dulu");
       return;
@@ -304,7 +312,7 @@ function CheckoutPage() {
                 )}
 
                 {destination && (
-                  <p className="flex items-start gap-2 text-xs text-[#7c5cbf]">
+                  <p className="flex items-start gap-2 text-xs text-brand">
                     <MapPin size={13} className="mt-0.5 shrink-0" />
                     {destination.label}
                   </p>
