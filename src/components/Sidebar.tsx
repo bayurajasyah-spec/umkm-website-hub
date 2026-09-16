@@ -123,9 +123,11 @@ export function Sidebar({ open, close }: SidebarProps) {
             onClick={close}
             className="flex items-center gap-3"
           >
-            <div className="grid size-10 place-items-center rounded-2xl bg-accent-yellow">
-              <Utensils size={18} className="text-brand" strokeWidth={2.5} />
-            </div>
+            <img
+              src="/by-cashier-logo.png"
+              alt="BY.CASHIER"
+              className="h-12 w-12 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
+            />
             <div className="text-left">
               <div className="font-display text-lg font-bold leading-tight text-white">
                 BY.CASHIER
