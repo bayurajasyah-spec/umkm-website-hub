@@ -125,15 +125,15 @@ export function Sidebar({ open, close }: SidebarProps) {
           >
             <img
               src="/by-cashier-logo.png"
-              alt="BY.CASHIER"
+              alt="BY.CASHIER UMKM"
               className="h-12 w-12 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
             />
             <div className="text-left">
               <div className="font-display text-lg font-bold leading-tight text-white">
-                BY.CASHIER
+                BY.CASHIER UMKM
               </div>
               <div className="text-[11px] text-white/40 leading-none">
-                Premium Delivery
+                UMKM Cashier POS
               </div>
             </div>
           </Link>

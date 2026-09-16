@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "BY.CASHIER UMKM — Food Ordering UMKM" },
       { name: "description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
-      { name: "author", content: "BY.CASHIER" },
+      { name: "author", content: "BY.CASHIER UMKM" },
       { property: "og:title", content: "BY.CASHIER UMKM — Food Ordering UMKM" },
       { property: "og:description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
       { property: "og:type", content: "website" },
