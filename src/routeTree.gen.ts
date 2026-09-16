@@ -14,6 +14,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as HppRouteImport } from './routes/hpp'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as KitchenRouteImport } from './routes/kitchen'
 import { Route as LoginRouteImport } from './routes/login'
@@ -50,6 +51,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HppRoute = HppRouteImport.update({
+  id: '/hpp',
+  path: '/hpp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventoryRoute = InventoryRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/hpp': typeof HppRoute
   '/inventory': typeof InventoryRoute
   '/kitchen': typeof KitchenRoute
   '/login': typeof LoginRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/hpp': typeof HppRoute
   '/inventory': typeof InventoryRoute
   '/kitchen': typeof KitchenRoute
   '/login': typeof LoginRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/customers': typeof CustomersRoute
   '/favorites': typeof FavoritesRoute
   '/history': typeof HistoryRoute
+  '/hpp': typeof HppRoute
   '/inventory': typeof InventoryRoute
   '/kitchen': typeof KitchenRoute
   '/login': typeof LoginRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/favorites'
     | '/history'
+    | '/hpp'
     | '/inventory'
     | '/kitchen'
     | '/login'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/favorites'
     | '/history'
+    | '/hpp'
     | '/inventory'
     | '/kitchen'
     | '/login'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/favorites'
     | '/history'
+    | '/hpp'
     | '/inventory'
     | '/kitchen'
     | '/login'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   CustomersRoute: typeof CustomersRoute
   FavoritesRoute: typeof FavoritesRoute
   HistoryRoute: typeof HistoryRoute
+  HppRoute: typeof HppRoute
   InventoryRoute: typeof InventoryRoute
   KitchenRoute: typeof KitchenRoute
   LoginRoute: typeof LoginRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hpp': {
+      id: '/hpp'
+      path: '/hpp'
+      fullPath: '/hpp'
+      preLoaderRoute: typeof HppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -381,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersRoute: CustomersRoute,
   FavoritesRoute: FavoritesRoute,
   HistoryRoute: HistoryRoute,
+  HppRoute: HppRoute,
   InventoryRoute: InventoryRoute,
   KitchenRoute: KitchenRoute,
   LoginRoute: LoginRoute,

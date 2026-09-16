@@ -90,10 +90,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BY.CASHIER — Food Ordering UMKM" },
+      { title: "BY.CASHIER UMKM — Food Ordering UMKM" },
       { name: "description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
       { name: "author", content: "BY.CASHIER" },
-      { property: "og:title", content: "BY.CASHIER — Food Ordering UMKM" },
+      { property: "og:title", content: "BY.CASHIER UMKM — Food Ordering UMKM" },
       { property: "og:description", content: "Premium food delivery app for local UMKM. Order delicious meals fast." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/by-cashier-logo.png", type: "image/png" },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",

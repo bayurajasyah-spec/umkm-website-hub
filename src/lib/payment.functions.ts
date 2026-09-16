@@ -74,11 +74,20 @@ export const createOrder = createServerFn({ method: "POST" })
         console.error(`QRIS gateway gagal [${res.status}]: ${body}`);
         throw new Error(`Gagal membuat QRIS [${res.status}]: ${body}`);
       }
-      const json = JSON.parse(body) as Record<string, any>;
-      const payload = (json["data"] ?? json) as Record<string, any>;
+      let json: Record<string, unknown>;
+      try {
+        json = JSON.parse(body) as Record<string, unknown>;
+      } catch {
+        throw new Error("Respons gateway QRIS tidak valid");
+      }
+      const payload = (json["data"] ?? json) as Record<string, unknown>;
       qrisPayload = (payload["qris_string"] ?? payload["qr_string"] ?? null) as string | null;
       qrisImageUrl = (payload["qris_url"] ?? payload["qr_image_url"] ?? null) as string | null;
       paymentReference = String(payload["reference"] ?? payload["id"] ?? orderCode);
+    }
+
+    if (!Number.isSafeInteger(total) || total <= 0) {
+      throw new Error("Total pesanan tidak valid");
     }
 
     const { error } = await supabaseAdmin.from("orders").insert({

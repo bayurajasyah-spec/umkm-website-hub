@@ -2,6 +2,7 @@ import {
   BarChart3,
   Boxes,
   Heart,
+  Calculator,
   LayoutDashboard,
   LogOut,
   PackageCheck,
@@ -33,6 +34,7 @@ const navGroups = [
     items: [
       { to: "/products", label: "Produk & Menu", icon: Boxes },
       { to: "/inventory", label: "Inventory & Stok", icon: Boxes },
+      { to: "/hpp", label: "Kalkulator HPP", icon: Calculator },
       { to: "/kitchen", label: "Kitchen Display", icon: Utensils },
       { to: "/favorites", label: "Favorit Menu", icon: Heart },
     ],
@@ -64,11 +66,26 @@ export function Sidebar({ open, close }: SidebarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [email, setEmail] = useState("Akun kasir");
+  const [displayName, setDisplayName] = useState("Akun kasir");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setEmail(data.user.email);
-    });
+    let active = true;
+    const loadAccountName = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active || !data.user) return;
+      const accountEmail = data.user.email ?? "";
+      setEmail(accountEmail || "Akun kasir");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nama")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (!active) return;
+      const registeredName = profile?.nama?.trim();
+      setDisplayName(registeredName || accountEmail.split("@")[0] || "Akun kasir");
+    };
+    void loadAccountName();
+    return () => { active = false; };
   }, []);
 
   async function handleLogout() {
@@ -106,9 +123,11 @@ export function Sidebar({ open, close }: SidebarProps) {
             onClick={close}
             className="flex items-center gap-3"
           >
-            <div className="grid size-10 place-items-center rounded-2xl bg-accent-yellow">
-              <Utensils size={18} className="text-brand" strokeWidth={2.5} />
-            </div>
+            <img
+              src="/by-cashier-logo.png"
+              alt="BY.CASHIER"
+              className="h-12 w-12 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
+            />
             <div className="text-left">
               <div className="font-display text-lg font-bold leading-tight text-white">
                 BY.CASHIER
@@ -169,10 +188,10 @@ export function Sidebar({ open, close }: SidebarProps) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="truncate text-sm font-semibold text-white">
-                {email}
+                {displayName}
               </div>
               <div className="truncate text-[11px] text-white/40">
-                Pro Member ⭐
+                {email}
               </div>
             </div>
             <button onClick={handleLogout} aria-label="Logout" className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition">
