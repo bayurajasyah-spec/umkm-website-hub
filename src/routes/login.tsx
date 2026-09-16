@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, LogIn, UserPlus, Utensils } from "lucide-react";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,8 +104,8 @@ function LoginPage() {
     <main className="grid min-h-screen place-items-center bg-[#f6f7fb] px-4 py-8">
       <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-xl ring-1 ring-black/5">
         <div className="mb-8 flex items-center gap-3">
-          <div className="grid size-12 place-items-center rounded-2xl bg-accent-yellow text-brand"><Utensils /></div>
-          <div><p className="text-xl font-black text-brand">BY.CASHIER</p><p className="text-xs text-muted-foreground">F&B Cashier POS</p></div>
+<img src="/by-cashier-logo.png" alt="UMKM CASHIER POS" className="size-12 object-contain" />
+<div><p className="text-xl font-black text-brand">UMKM CASHIER POS</p><p className="text-xs text-muted-foreground">Kasir UMKM realtime</p></div>
         </div>
         <h1 className="text-2xl font-bold text-brand">{registering ? "Buat akun kasir" : "Masuk ke akun kasir"}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{registering ? "Daftarkan akun operasional baru untuk mengakses POS." : "Gunakan akun operasional Anda untuk mengakses POS."}</p>
