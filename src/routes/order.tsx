@@ -9,7 +9,7 @@ import { toFood, usePosProducts } from "@/lib/pos-data";
 import { useStoreActions, useStoreState } from "@/lib/store";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/order")({ component: CashierPage, head: () => ({ meta: [{ title: "UMKM CASHIER POS" }] }) });
+export const Route = createFileRoute("/order")({ component: CashierPage, head: () => ({ meta: [{ title: "BY.CASHIER UMKM" }] }) });
 
 function CashierPage() {
   const { products, categories, loading } = usePosProducts();
