@@ -13,7 +13,7 @@ export function FoodCard({ food, isFav, onFav, onAdd, onDetail }: FoodCardProps)
   return (
     <article className="group overflow-hidden rounded-3xl bg-white shadow-[0_4px_20px_rgba(28,7,92,0.07)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(28,7,92,0.14)] hover:-translate-y-0.5">
       {/* Image Area */}
-      <div className="relative h-48 overflow-hidden bg-gray-100">
+      <div className="relative h-40 overflow-hidden bg-gray-100 sm:h-48 lg:h-52">
         <img
           src={food.image}
           alt={food.name}
